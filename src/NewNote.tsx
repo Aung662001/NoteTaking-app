@@ -1,15 +1,23 @@
-import { NoteData } from "./App";
+import { NoteData, Tag } from "./App";
 import NoteForm from "./NoteForm";
-
-export default function NewNote() {
-  function onSubmit({ title, markdown, tags }: NoteData) {
-    console.log(title);
-    return null;
-  }
+type newNoteProps = {
+  onSubmit: (data: NoteData) => void;
+  onAddTag: (data: Tag) => void;
+  avaiableTags: Tag[];
+};
+export default function NewNote({
+  onSubmit,
+  onAddTag,
+  avaiableTags,
+}: newNoteProps) {
   return (
     <>
       <h1 className="mb-4">New Note</h1>
-      <NoteForm onSubmit={onSubmit} />
+      <NoteForm
+        onSubmit={onSubmit}
+        onAddTag={onAddTag}
+        avaiableTags={avaiableTags}
+      />
     </>
   );
 }

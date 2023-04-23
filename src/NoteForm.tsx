@@ -22,7 +22,7 @@ export default function NoteForm({
     onSubmit({
       title: titleRef.current!.value,
       markdown: markdownRef.current!.value,
-      tags: avaiableTags,
+      tags: selectedTags,
     });
     navigate("..");
   }

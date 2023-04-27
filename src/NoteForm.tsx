@@ -9,13 +9,16 @@ type NoteFormProps = {
   onSubmit: (data: NoteData) => void;
   onAddTag: (data: Tag) => void;
   avaiableTags: Tag[];
-};
+} & Partial<NoteData>;
 export default function NoteForm({
   onSubmit,
   onAddTag,
   avaiableTags,
+  title = "",
+  markdown = "",
+  tags = [],
 }: NoteFormProps) {
-  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>(tags);
   const navigate = useNavigate();
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -36,7 +39,11 @@ export default function NoteForm({
           <Col>
             <FormGroup controlId="title">
               <Form.Label>Title</Form.Label>
-              <Form.Control required ref={titleRef}></Form.Control>
+              <Form.Control
+                required
+                ref={titleRef}
+                defaultValue={title}
+              ></Form.Control>
             </FormGroup>
           </Col>
           <Col>
@@ -68,7 +75,13 @@ export default function NoteForm({
         </Row>
         <FormGroup controlId="markdowm">
           <Form.Label>Body</Form.Label>
-          <Form.Control required as="textarea" rows={15} ref={markdownRef} />
+          <Form.Control
+            required
+            as="textarea"
+            rows={15}
+            ref={markdownRef}
+            defaultValue={markdown}
+          />
         </FormGroup>
       </Stack>
       <Stack

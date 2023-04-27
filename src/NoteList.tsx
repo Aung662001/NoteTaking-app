@@ -1,23 +1,37 @@
-import React, { useState } from "react";
+import { useMemo, useState } from "react";
+import style from "./NoteList.module.css";
 import {
   Button,
   Card,
   Col,
   Form,
   FormGroup,
+  Modal,
   Row,
   Stack,
 } from "react-bootstrap";
 import ReactSelect from "react-select";
 import { Tag } from "./App";
-function clearBoard() {
-  const card = document.querySelector(".select");
+import { Link } from "react-router-dom";
 
-  if (card) console.log("called", card?.innerHTML);
+interface EditTagsModalProps {
+  avaiableTags: Tag[];
+  show: boolean;
+  handleClose: () => void;
+  deleteTag: (id: string) => void;
+  updateTag: (id: string, label: string) => void;
+}
+
+interface SimplifyNotes {
+  id: string;
+  title: string;
+  tags: Tag[];
 }
 interface NoteListProps {
   avaiableTags: Tag[];
-  notesWithTags: NoteWithtags[];
+  notes: SimplifyNotes[];
+  deleteTag: (id: string) => void;
+  updateTag: (id: string, label: string) => void;
 }
 interface NoteWithtags {
   tags: Tag[];
@@ -28,10 +42,25 @@ interface NoteWithtags {
 }
 export default function NoteList({
   avaiableTags,
-  notesWithTags,
+  notes,
+  deleteTag,
+  updateTag,
 }: NoteListProps) {
+  const [editTagsModalOpen, setEditTagsModalOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [title, setTitle] = useState("");
+  const filterNotes = useMemo(() => {
+    return notes.filter((note) => {
+      return (
+        (title === "" ||
+          note.title.toLocaleLowerCase().includes(title.toLocaleLowerCase())) &&
+        (selectedTags.length === 0 ||
+          selectedTags.every((tag) =>
+            note.tags.some((noteTag) => noteTag.id === tag.id)
+          ))
+      );
+    });
+  }, [notes, selectedTags, title]);
 
   return (
     <>
@@ -41,8 +70,14 @@ export default function NoteList({
         </Col>
         <Col xs="auto">
           <Stack direction="horizontal" gap={2}>
-            <Button>Create</Button>
-            <Button variant="outline-secondary" type="button">
+            <Link to="/new">
+              <Button>Create</Button>
+            </Link>
+            <Button
+              variant="outline-secondary"
+              type="button"
+              onClick={() => setEditTagsModalOpen(true)}
+            >
               Edit Tags
             </Button>
           </Stack>
@@ -83,7 +118,7 @@ export default function NoteList({
           </Col>
         </Row>
       </Form>
-      {selectedTags.length === 0 ? (
+      {/* {selectedTags.length === 0 ? (
         <Row xs={1} md={2} lg={3}>
           {notesWithTags.map((note) => {
             return (
@@ -150,7 +185,86 @@ export default function NoteList({
             });
           })}
         </Row>
-      )}
+      )} */}
+      <Row xs={1} md={2} lg={3} xl={4} className="g-3">
+        {filterNotes.map((note) => (
+          <Col key={note.id}>
+            <NoteCard id={note.id} title={note.title} tags={note.tags} />
+          </Col>
+        ))}
+      </Row>
+      <EditTagsModel
+        show={editTagsModalOpen}
+        handleClose={() => setEditTagsModalOpen(false)}
+        avaiableTags={avaiableTags}
+        deleteTag={deleteTag}
+        updateTag={updateTag}
+      />
     </>
+  );
+}
+function NoteCard({ id, title, tags }: SimplifyNotes) {
+  return (
+    <Card
+      as={Link}
+      to={`/${id}`}
+      className={`text-reset h-100 text-decoration-none ${style.card}`}
+    >
+      <Card.Body className="d-flex justify-content-center align-items-center flex-column ">
+        <Card.Title>{title}</Card.Title>
+        <Card.Text className="mt-3">
+          {tags.length > 0 &&
+            tags.map((tag) => {
+              {
+                return (
+                  <Button className="mx-3 py-0" key={tag.id} variant="info">
+                    {tag.label}
+                  </Button>
+                );
+              }
+            })}
+        </Card.Text>
+      </Card.Body>
+    </Card>
+  );
+}
+function EditTagsModel({
+  avaiableTags,
+  handleClose,
+  show,
+  deleteTag,
+  updateTag,
+}: EditTagsModalProps) {
+  return (
+    <Modal show={show} onHide={handleClose}>
+      <Modal.Header closeButton>
+        <Modal.Title>Edit Tags</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form>
+          <Stack gap={2}>
+            {avaiableTags.map((tag) => (
+              <Row key={tag.id}>
+                <Col>
+                  <Form.Control
+                    value={tag.label}
+                    onChange={(eve) => updateTag(tag.id, eve.target.value)}
+                    type="text"
+                  />
+                </Col>
+                <Col xs="auto">
+                  <Button
+                    variant="outline-danger"
+                    onClick={() => deleteTag(tag.id)}
+                  >
+                    &times;
+                  </Button>
+                </Col>
+              </Row>
+            ))}
+          </Stack>
+        </Form>
+      </Modal.Body>
+    </Modal>
   );
 }
